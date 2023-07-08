@@ -7,43 +7,43 @@ import android.view.ViewGroup
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
-import pers.shawxingkwok.androidutil.view.KFragment.OnClick
-import pers.shawxingkwok.ktutil.KReadWriteProperty
+import pers.shawxingkwok.androidutil.KLog
+import java.lang.reflect.Method
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
 /**
- * Sets [binding] via [VB] and [bindingKClass]. Also supports [withView] and [OnClick].
+ * **See** [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#kfragment)
  */
 public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KClass<VB>) : Fragment() {
     private val actionsOnCreateView: MutableList<(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) -> Unit> = mutableListOf()
+    private val actionsOnViewCreated: MutableList<(view: View, savedInstanceState: Bundle?) -> Unit> = mutableListOf()
     private val actionsOnDestroyView: MutableList<() -> Unit> = mutableListOf()
 
-    /**
-     * @suppress
-     */
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         actionsOnCreateView.forEach { it(inflater, container, savedInstanceState) }
-        return binding.root
+        return _binding!!.root
     }
 
-    /**
-     * @suppress
-     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        actionsOnViewCreated.forEach { it(view, savedInstanceState) }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         actionsOnDestroyView.forEach { it() }
-    }
-
-    private fun requireBindingAlive(name: String){
-        require(_binding != null){
-            "In ${javaClass.canonicalName}, " +
-            "$name is alive between inclusive 'onCreateView' and exclusive 'onDestroyView'."
-        }
     }
 
     //region binding
@@ -55,22 +55,20 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
      * Note: alive only between inclusive [onCreateView] and exclusive [onDestroyView].
      */
     protected val binding: VB get(){
-        requireBindingAlive("binding")
+        require(_binding != null){
+            "In ${javaClass.canonicalName}, binding is alive between inclusive " +
+            "'onCreateView' and exclusive 'onDestroyView'."
+        }
+
         return _binding!!
     }
 
     init {
         actionsOnCreateView += { inflater, container, _ ->
-            @Suppress("UNCHECKED_CAST")
-            _binding = bindingKClass
-                .java
-                .getMethod(
-                    "inflate",
-                    LayoutInflater::class.java,
-                    ViewGroup::class.java,
-                    Boolean::class.java
-                )
-                .invoke(null, inflater, container, false) as VB
+            require(bindingKClass != ViewBinding::class){
+                "VB should be a subtype of ViewBinding."
+            }
+            _binding = bindingKClass.inflate(inflater, container, false)
         }
 
         actionsOnDestroyView += {
@@ -79,8 +77,11 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
     }
     //endregion
 
+    //region withView
+    private object UNINITIALIZED
+
     /**
-     * Delegates a value alive between inclusive [onCreateView] and exclusive [onDestroyView].
+     * Delegates a value alive between inclusive [onViewCreated] and exclusive [onDestroyView].
      *
      * Usage example:
      *
@@ -89,71 +90,30 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
      */
     protected fun <T> withView(initialize: () -> T): ReadWriteProperty<KFragment<VB>, T> =
         object  : ReadWriteProperty<KFragment<VB>, T> {
-            var t: T? = null
+            var t: Any? = UNINITIALIZED
 
             init {
-                actionsOnCreateView += { _, _, _ -> t = initialize() }
-                actionsOnDestroyView += { t = null }
+                actionsOnViewCreated += { _, _ -> t = initialize() }
+                actionsOnDestroyView += { t = UNINITIALIZED }
+            }
+
+            private fun requireSafe(prop: KProperty<*>){
+                require(t != UNINITIALIZED){
+                    "Call ${this@KFragment.javaClass.canonicalName}.${prop.name} between " +
+                    "inclusive `onViewCreated` and exclusive `onDestroyView`."
+                }
             }
 
             override fun getValue(thisRef: KFragment<VB>, property: KProperty<*>): T {
-                requireBindingAlive(property.name)
+                requireSafe(property)
                 @Suppress("UNCHECKED_CAST")
                 return t as T
             }
 
             override fun setValue(thisRef: KFragment<VB>, property: KProperty<*>, value: T) {
-                requireBindingAlive(property.name)
+                requireSafe(property)
                 t = value
             }
         }
-
-    //region OnClick
-    /**
-     * View of [viewId] would be set [View.OnClickListener] which calls the annotated function.
-     *
-     * Usage example:
-     *
-     * ```
-     * @OnClick(R.id.btn_confirm)
-     * private fun onClick1(){
-     *     ...
-     * }
-     *
-     * @OnClick(R.id.btn_cancel)
-     * private fun onClick2(){
-     *     ...
-     * }
-     *```
-     *
-     * Remember to click 'alt + enter' and choose "suppress unused warning if annotated by [OnClick]".
-     */
-    @Retention(AnnotationRetention.RUNTIME)
-    @Target(AnnotationTarget.FUNCTION)
-    public annotation class OnClick(@IdRes val viewId: Int)
-
-    private val functionIDPairs = this::class
-        .declaredMemberFunctions
-        .mapNotNull { function ->
-            val id = function.findAnnotation<OnClick>()?.viewId ?: return@mapNotNull null
-            require(function.typeParameters.none() && function.parameters.size == 1){
-                "${function.name} is annotated with OnClick and should own no parameters " +
-                        "except its owner instance."
-            }
-            function.isAccessible = true
-            function to id
-        }
-
-    init {
-        actionsOnCreateView += { _, _, _ ->
-            functionIDPairs.forEach { (function, id) ->
-                val view = binding.root.findViewById<View>(id)
-
-                view.setOnClickListener {
-                    function.call(this)
-                }
-            }
-        }
-    }
     //endregion
 }

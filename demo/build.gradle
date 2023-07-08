@@ -38,7 +38,7 @@ android {
 }
 
 dependencies {
-
+    implementation('io.github.shawxingkwok:android-util-core:1.0.0-SNAPSHOT')
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
@@ -50,8 +50,6 @@ dependencies {
 }
 
 //region shawxingkwok: android-util-view
-android.lintOptions.disable 'NonConstantResourceId'
-
 tasks.withType(KotlinCompile).configureEach{
     kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
 }

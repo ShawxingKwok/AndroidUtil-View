@@ -1,6 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.dokka.DokkaConfiguration.Visibility
 
 plugins {
     id 'com.android.library'
@@ -51,31 +49,11 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'io.github.shawxingkwok:android-util-core:1.0.0-SNAPSHOT'
     implementation 'io.github.shawxingkwok:kt-util:1.0.0-SNAPSHOT'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$version_kt"
 }
 
 tasks.withType(KotlinCompile).configureEach{
     kotlinOptions.freeCompilerArgs += "-Xexplicit-api=warning"
     kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
-}
-
-// dokka
-tasks.withType(DokkaTask).configureEach {
-    suppressInheritedMembers.set(true)
-
-    outputDirectory.set(file("/Users/william/IdeaProjects/library/ITWorks/content/docs/android/util-view/html"))
-
-    dokkaSourceSets.configureEach {
-        documentedVisibilities.set([
-                Visibility.PUBLIC,
-                Visibility.PROTECTED,
-        ])
-
-        perPackageOption {
-            matchingRegex.set(".*internal.*")
-            suppress.set(true)
-        }
-    }
 }
 
 // publish

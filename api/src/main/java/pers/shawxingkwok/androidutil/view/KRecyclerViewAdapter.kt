@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AdapterListUpdateCallback
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
@@ -31,9 +30,6 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
 {
     private val updateCallback = AdapterListUpdateCallback(this)
 
-    /**
-     * @suppress
-     */
     final override fun getItemCount(): Int = holderBinders.size
 
     // Max generation of currently scheduled runnable
@@ -63,7 +59,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
 
         when {
-            oldBinders == newBinders -> return
+            newBinders == oldBinders -> return
 
             // fast simple remove all
             newBinders.none() -> {
@@ -127,9 +123,6 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
     }
 
-    /**
-     * @suppress
-     */
     final override fun getItemViewType(position: Int): Int {
         val binder = holderBinders[position]
 
@@ -142,9 +135,6 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
     }
 
-    /**
-     * @suppress
-     */
     final override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -154,60 +144,29 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         return builder.buildViewHolder(parent, layoutInflater)
     }
 
-    /**
-     * @suppress
-     */
     final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
         holderBinders[position].onBindHolder(holder)
     }
 
-    /**
-     * Processes [ViewBindingHolder] after its creation via [creators].
-     */
     protected open fun register(creators: MutableList<HolderCreator<ViewBinding>>){}
 
-    /**
-     * Arranges new items via [binders].
-     */
     protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
 
-    /**
-     * @suppress
-     */
     public class HolderCreator<out VB : ViewBinding> (
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
     ) {
-        private companion object{
-            private val cache = mutableMapOf<KClass<out ViewBinding>, Method>()
-        }
-
-        private val getBinding: Method =
-            cache.getOrPut(bindingKClass){
-                bindingKClass.java
-                    .getMethod(
-                        "inflate",
-                        LayoutInflater::class.java,
-                        ViewGroup::class.java,
-                        Boolean::class.java
-                    )
-            }
-
-        @Suppress("UNCHECKED_CAST")
         internal fun buildViewHolder(
             parent: ViewGroup,
             layoutInflater: LayoutInflater,
         )
             : ViewBindingHolder<@UnsafeVariance VB>
         {
-            val binding = getBinding(null, layoutInflater, parent, false) as VB
+            val binding = bindingKClass.inflate(layoutInflater, parent, false)
             return ViewBindingHolder(binding).also(onHolderCreated)
         }
     }
 
-    /**
-     * @suppress
-     */
     public class HolderBinder<out VB : ViewBinding>(
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val id: Any?,
@@ -215,8 +174,5 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         internal val onBindHolder: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
     )
 
-    /**
-     * @suppress
-     */
     public class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
 }
