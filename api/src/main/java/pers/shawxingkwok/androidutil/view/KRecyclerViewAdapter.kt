@@ -10,10 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.*
+import pers.shawxingkwok.androidutil.KLog
 import pers.shawxingkwok.ktutil.mutableLazy
 import pers.shawxingkwok.ktutil.updateIf
 import java.lang.Runnable
-import java.lang.reflect.Method
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -50,7 +50,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = maxScheduledGeneration.addAndGet(1)
         val oldBinders = holderBinders
-        val newBinders = mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
+        val newBinders = mutableListOf<HolderBinder<ViewBinding>>().also(::onBindHolders)
 
         fun execute(act: () -> Unit) {
             holderBinders = newBinders
@@ -59,7 +59,12 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
 
         when {
-            newBinders == oldBinders -> return
+            newBinders.size == oldBinders.size
+            && newBinders.zip(oldBinders).all { (new, old) ->
+                new.bindingKClass == old.bindingKClass
+                && new.id == old.id
+            }
+            -> return
 
             // fast simple remove all
             newBinders.none() -> {
@@ -83,16 +88,27 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
 
             override fun getNewListSize(): Int = newBinders.size
 
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            override fun areItemsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int,
+            ): Boolean {
                 val oldBinder = oldBinders[oldItemPosition]
                 val newBinder = newBinders[newItemPosition]
-                return oldBinder.bindingKClass == newBinder.bindingKClass && oldBinder.id == newBinder.id
+                return oldBinder.bindingKClass == newBinder.bindingKClass
+                        && oldBinder.id == newBinder.id
             }
 
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            override fun areContentsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int,
+            ): Boolean =
                 oldBinders[oldItemPosition].contentId == newBinders[newItemPosition].contentId
 
-            override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? = null
+            override fun getChangePayload(
+                oldItemPosition: Int,
+                newItemPosition: Int,
+            ): Any? =
+                null
         }
 
         // compute in another thread.
@@ -110,7 +126,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
     }
 
     private var holderCreators: List<HolderCreator<ViewBinding>> by mutableLazy {
-        val list = mutableListOf<HolderCreator<ViewBinding>>().also(::register)
+        val list = mutableListOf<HolderCreator<ViewBinding>>().also(::onHoldersCreated)
 
         require(list.distinctBy { it.bindingKClass }.size == list.size){
             "Creation helpers are distinct by bindingKClass, but you register repeatedly."
@@ -120,7 +136,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
     }
 
     private var holderBinders: List<HolderBinder<ViewBinding>> by mutableLazy {
-        mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
+        mutableListOf<HolderBinder<ViewBinding>>().also(::onBindHolders)
     }
 
     final override fun getItemViewType(position: Int): Int {
@@ -148,13 +164,13 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         holderBinders[position].onBindHolder(holder)
     }
 
-    protected open fun register(creators: MutableList<HolderCreator<ViewBinding>>){}
+    protected open fun onHoldersCreated(creators: MutableList<HolderCreator<ViewBinding>>){}
 
-    protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
+    protected abstract fun onBindHolders(binders: MutableList<HolderBinder<ViewBinding>>)
 
     public class HolderCreator<out VB : ViewBinding> (
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
-        internal val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
+        private val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
     ) {
         internal fun buildViewHolder(
             parent: ViewGroup,

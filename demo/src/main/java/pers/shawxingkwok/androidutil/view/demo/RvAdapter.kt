@@ -9,7 +9,7 @@ import pers.shawxingkwok.androidutil.view.demo.databinding.ItemPurpleBinding
 import pers.shawxingkwok.androidutil.view.demo.databinding.ItemTealBinding
 
 class RvAdapter(scope: CoroutineScope, var users: List<User>) : KRecyclerViewAdapter(scope) {
-    override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
+    override fun onBindHolders(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += HolderBinder(ItemHeaderBinding::class, null, null){}
 
         binders += users.mapIndexed { i, user ->

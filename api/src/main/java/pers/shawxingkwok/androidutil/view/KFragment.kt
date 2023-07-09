@@ -86,7 +86,7 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
      * Usage example:
      *
      * ```
-     * val adapter by withView{ Adapter() }
+     * val/var adapter by withView{ Adapter() }
      */
     protected fun <T> withView(initialize: () -> T): ReadWriteProperty<KFragment<VB>, T> =
         object  : ReadWriteProperty<KFragment<VB>, T> {
