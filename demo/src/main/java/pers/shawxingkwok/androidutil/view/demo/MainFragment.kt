@@ -1,46 +1,34 @@
 package pers.shawxingkwok.androidutil.view.demo
 
 import android.os.Bundle
-import android.os.Vibrator
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
-import pers.shawxingkwok.androidutil.KLog
 import pers.shawxingkwok.androidutil.view.KFragment
 import pers.shawxingkwok.androidutil.view.collectOnResume
 import pers.shawxingkwok.androidutil.view.demo.databinding.FragmentMainBinding
 import pers.shawxingkwok.androidutil.view.onClick
-import kotlin.reflect.KClass
 
 class MainFragment : KFragment<FragmentMainBinding>(FragmentMainBinding::class) {
     private val vm: MainViewModel by viewModels()
 
-    private val rvAdapter: RvAdapter by withView {
-        RvAdapter(
-            scope = viewLifecycleOwner.lifecycleScope,
-            users = vm.items.value
-        )
-        .also { binding.rv.adapter = it }
+    private val msgAdapter: MsgAdapter by withView {
+        MsgAdapter().also { binding.rv.adapter = it }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         vm.items.collectOnResume{
-            rvAdapter.users = it
-            rvAdapter.update()
+            msgAdapter.msgs = it
+
+            msgAdapter.update {
+                binding.rv.scrollToPosition(msgAdapter.itemCount - 1)
+                binding.etMsg.text.clear()
+            }
         }
 
-        binding.btn.onClick {
-            val newTopUserId = rvAdapter.users.last().id + 1
-            vm.items.value = rvAdapter.users + User(newTopUserId)
+        binding.btnSend.onClick {
+            vm.sendMsg(binding.etMsg.text.toString())
         }
     }
 }

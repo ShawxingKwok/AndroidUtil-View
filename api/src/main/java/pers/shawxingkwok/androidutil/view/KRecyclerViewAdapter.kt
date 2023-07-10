@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.*
-import pers.shawxingkwok.androidutil.KLog
+import pers.shawxingkwok.ktutil.lazyFast
 import pers.shawxingkwok.ktutil.mutableLazy
 import pers.shawxingkwok.ktutil.updateIf
 import java.lang.Runnable
@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
  *
  * See [detailed docs](https://shawxingkwok.github.io/ITWorks/docs/androidutilview/html/view/pers.shawxingkwok.androidutil.view/-k-recycler-view-adapter/)
  */
-public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
+public abstract class KRecyclerViewAdapter
     : RecyclerView.Adapter<KRecyclerViewAdapter.ViewBindingHolder<ViewBinding>>()
 {
     private val updateCallback = AdapterListUpdateCallback(this)
@@ -35,22 +35,22 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
     // Max generation of currently scheduled runnable
     private val maxScheduledGeneration = AtomicInteger(0)
 
-    private val diffDispatcher = run {
+    private val scope = run {
         val workQueue = LinkedBlockingQueue<Runnable>()
         val executor = ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, workQueue)
-        executor.asCoroutineDispatcher()
+        CoroutineScope(executor.asCoroutineDispatcher())
     }
 
     /**
      * Notifies [KRecyclerViewAdapter] to update and call [onFinish].
      *
-     * Warning: [update] may be called too frequently, which makes some previous [onFinish] may be omitted.
+     * Note that [update] may be called too frequently, which makes some previous [onFinish] omitted.
      */
     public fun update(onFinish: (() -> Unit)? = null) {
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = maxScheduledGeneration.addAndGet(1)
         val oldBinders = holderBinders
-        val newBinders = mutableListOf<HolderBinder<ViewBinding>>().also(::onBindHolders)
+        val newBinders = mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
 
         fun execute(act: () -> Unit) {
             holderBinders = newBinders
@@ -59,13 +59,6 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
 
         when {
-            newBinders.size == oldBinders.size
-            && newBinders.zip(oldBinders).all { (new, old) ->
-                new.bindingKClass == old.bindingKClass
-                && new.id == old.id
-            }
-            -> return
-
             // fast simple remove all
             newBinders.none() -> {
                 execute {
@@ -112,7 +105,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
 
         // compute in another thread.
-        scope.launch(diffDispatcher) {
+        scope.launch{
             val result = DiffUtil.calculateDiff(callback)
 
             // switch to the main thread and update UI if there is no submitted new list.
@@ -125,8 +118,8 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
     }
 
-    private var holderCreators: List<HolderCreator<ViewBinding>> by mutableLazy {
-        val list = mutableListOf<HolderCreator<ViewBinding>>().also(::onHoldersCreated)
+    private val holderProcessors: MutableList<HolderProcessor<ViewBinding>> by lazyFast {
+        val list = mutableListOf<HolderProcessor<ViewBinding>>().also(::onHoldersCreated)
 
         require(list.distinctBy { it.bindingKClass }.size == list.size){
             "Creation helpers are distinct by bindingKClass, but you register repeatedly."
@@ -136,18 +129,18 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
     }
 
     private var holderBinders: List<HolderBinder<ViewBinding>> by mutableLazy {
-        mutableListOf<HolderBinder<ViewBinding>>().also(::onBindHolders)
+        mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
     }
 
     final override fun getItemViewType(position: Int): Int {
         val binder = holderBinders[position]
 
-        return holderCreators.indexOfFirst { holderCreator ->
-            holderCreator.bindingKClass == binder.bindingKClass
+        return holderProcessors.indexOfFirst {
+            it.bindingKClass == binder.bindingKClass
         }
         .updateIf({ i ->  i == -1 }) {
-            holderCreators += HolderCreator(binder.bindingKClass){}
-            return holderCreators.lastIndex
+            holderProcessors += HolderProcessor(binder.bindingKClass){}
+            return holderProcessors.lastIndex
         }
     }
 
@@ -156,39 +149,38 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         viewType: Int
     ): ViewBindingHolder<ViewBinding> {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val builder = holderCreators.elementAt(viewType)
-        return builder.buildViewHolder(parent, layoutInflater)
+        val processor = holderProcessors[viewType]
+        val binding = processor.bindingKClass.inflate(layoutInflater, parent, false)
+        return ViewBindingHolder(binding).also(processor.process)
     }
 
     final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
         holderBinders[position].onBindHolder(holder)
     }
 
-    protected open fun onHoldersCreated(creators: MutableList<HolderCreator<ViewBinding>>){}
-
-    protected abstract fun onBindHolders(binders: MutableList<HolderBinder<ViewBinding>>)
-
-    public class HolderCreator<out VB : ViewBinding> (
-        internal val bindingKClass: KClass<@UnsafeVariance VB>,
-        private val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
+    final override fun onBindViewHolder(
+        holder: ViewBindingHolder<ViewBinding>,
+        position: Int,
+        payloads: MutableList<Any>,
     ) {
-        internal fun buildViewHolder(
-            parent: ViewGroup,
-            layoutInflater: LayoutInflater,
-        )
-            : ViewBindingHolder<@UnsafeVariance VB>
-        {
-            val binding = bindingKClass.inflate(layoutInflater, parent, false)
-            return ViewBindingHolder(binding).also(onHolderCreated)
-        }
+        super.onBindViewHolder(holder, position, payloads)
     }
 
-    public class HolderBinder<out VB : ViewBinding>(
+    protected open fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>){}
+
+    protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
+
+    public open class HolderProcessor<out VB : ViewBinding> (
+        internal val bindingKClass: KClass<@UnsafeVariance VB>,
+        internal val process: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
+    )
+
+    public open class HolderBinder<out VB : ViewBinding>(
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val id: Any?,
         internal val contentId: Any?,
         internal val onBindHolder: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
     )
 
-    public class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
+    public open class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
 }
