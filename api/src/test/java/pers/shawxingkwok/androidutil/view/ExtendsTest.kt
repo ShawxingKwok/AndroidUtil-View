@@ -2,9 +2,6 @@ package pers.shawxingkwok.androidutil.view
 
 import org.junit.Test
 import kotlin.reflect.KClass
-import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.functions
 
 class ExtendsTest {
     @Test
@@ -24,7 +21,6 @@ abstract class A{
             clazz = clazz.java.superclass!!.kotlin
         }
 
-        classes.flatMap { it.declaredFunctions.toList() }.map { it.name }.let(::println)
     }
 
     private fun foo(){}
