@@ -57,10 +57,18 @@ tasks.withType(KotlinCompile).configureEach{
 
 // publish
 mavenPublishing {
-    coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
     pom {
-        name = "AndroidUtil-view"
-        description = ""
+        coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
+//    def repoName = "AndroidUtil-View"
+        name = "AndroidUtil-View"
+        description = "Personal android view util"
         inceptionYear = "2023"
+
+        url = "https://github.com/ShawxingKwok/$name/"
+
+        scm{
+            connection = "scm:git:git://github.com/ShawxingKwok/${name}.git"
+            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${name}.git"
+        }
     }
 }
