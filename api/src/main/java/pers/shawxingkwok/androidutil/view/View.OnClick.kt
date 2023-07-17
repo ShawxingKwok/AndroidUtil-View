@@ -3,7 +3,7 @@ package pers.shawxingkwok.androidutil.view
 import android.view.View
 
 /**
- * Sets a [View.OnClickListener] with a more [T] of [View] in [act].
+ * Sets a [View.OnClickListener] with a more [T] in [act].
  *
  * Usage sample
  * ```
