@@ -110,7 +110,7 @@ public abstract class KRecyclerViewAdapter
 
             // switch to the main thread and update UI if there is no submitted new list.
             if (runGeneration == maxScheduledGeneration.get())
-                withContext(Dispatchers.Main.immediate){
+                launch(Dispatchers.Main.immediate){
                     execute {
                         result.dispatchUpdatesTo(updateCallback)
                     }
