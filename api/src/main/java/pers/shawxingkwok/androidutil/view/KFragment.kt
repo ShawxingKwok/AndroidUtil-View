@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
- * **See** [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#kfragment)
+ * See [docs](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#kfragment)
  */
 public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KClass<VB>) : Fragment() {
     private val actionsOnCreateView: MutableList<(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) -> Unit> = mutableListOf()

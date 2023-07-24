@@ -21,9 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 /**
- * A simplified [RecyclerView.Adapter] supporting multiple kinds of items.
- *
- * See [detailed docs](https://shawxingkwok.github.io/ITWorks/docs/androidutilview/html/view/pers.shawxingkwok.androidutil.view/-k-recycler-view-adapter/)
+ * See [docs](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#krecyclerviewadapter)
  */
 public abstract class KRecyclerViewAdapter
     : RecyclerView.Adapter<KRecyclerViewAdapter.ViewBindingHolder<ViewBinding>>()
