@@ -2,8 +2,8 @@ package pers.shawxingkwok.androidutil.view.demo
 
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
-import pers.shawxingkwok.androidutil.view.demo.databinding.ItemMsgEndBinding
-import pers.shawxingkwok.androidutil.view.demo.databinding.ItemMsgStartBinding
+import pers.shawxingkwok.androidutil.view.demo.databinding.ItemMsgReceiveBinding
+import pers.shawxingkwok.androidutil.view.demo.databinding.ItemMsgSendBinding
 
 class MsgAdapter : KRecyclerViewAdapter() {
     var msgs: List<Msg> = emptyList()
@@ -12,7 +12,7 @@ class MsgAdapter : KRecyclerViewAdapter() {
         binders += msgs.map { msg ->
             if (msg.fromMe)
                 HolderBinder(
-                    bindingKClass = ItemMsgEndBinding::class,
+                    inflate = ItemMsgSendBinding::inflate,
                     id = msg.id,
                     contentId = msg.text,
                 ){
@@ -20,7 +20,7 @@ class MsgAdapter : KRecyclerViewAdapter() {
                 }
             else
                 HolderBinder(
-                    bindingKClass = ItemMsgStartBinding::class,
+                    inflate = ItemMsgReceiveBinding::inflate,
                     id = msg.id,
                     contentId = msg.text,
                 ){

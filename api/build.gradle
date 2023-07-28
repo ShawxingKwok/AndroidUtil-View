@@ -39,12 +39,15 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1"
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 
 dependencies {
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'io.github.shawxingkwok:android-util-core:1.0.0-SNAPSHOT'
     implementation 'io.github.shawxingkwok:kt-util:1.0.0-SNAPSHOT'
@@ -59,16 +62,16 @@ tasks.withType(KotlinCompile).configureEach{
 mavenPublishing {
     pom {
         coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
-//    def repoName = "AndroidUtil-View"
-        name = "AndroidUtil-View"
+        def repoName = "AndroidUtil-View"
+        name = repoName
         description = "Personal android view util"
         inceptionYear = "2023"
 
-        url = "https://github.com/ShawxingKwok/$name/"
+        url = "https://github.com/ShawxingKwok/$repoName/"
 
         scm{
-            connection = "scm:git:git://github.com/ShawxingKwok/${name}.git"
-            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${name}.git"
+            connection = "scm:git:git://github.com/ShawxingKwok/${repoName}.git"
+            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${repoName}.git"
         }
     }
 }

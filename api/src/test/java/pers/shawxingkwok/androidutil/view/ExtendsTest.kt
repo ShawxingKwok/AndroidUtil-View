@@ -1,7 +1,9 @@
 package pers.shawxingkwok.androidutil.view
 
 import org.junit.Test
+import pers.shawxingkwok.ktutil.KReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 class ExtendsTest {
     @Test
@@ -33,4 +35,7 @@ abstract class B : A(){
 
 class C : B(){
     private fun foo(){}
+}
+
+fun main() {
 }

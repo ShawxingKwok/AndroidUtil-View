@@ -85,7 +85,7 @@ public abstract class KRecyclerViewAdapter
             ): Boolean {
                 val oldBinder = oldBinders[oldItemPosition]
                 val newBinder = newBinders[newItemPosition]
-                return oldBinder.bindingKClass == newBinder.bindingKClass
+                return oldBinder.inflate == newBinder.inflate
                         && oldBinder.id == newBinder.id
             }
 
@@ -119,8 +119,8 @@ public abstract class KRecyclerViewAdapter
     private val holderProcessors: MutableList<HolderProcessor<ViewBinding>> by lazyFast {
         val list = mutableListOf<HolderProcessor<ViewBinding>>().also(::onHoldersCreated)
 
-        require(list.distinctBy { it.bindingKClass }.size == list.size){
-            "Creation helpers are distinct by bindingKClass, but you register repeatedly."
+        require(list.distinctBy { it.inflate }.size == list.size){
+            "Creation helpers are distinct by 'inflate', but you register repeatedly."
         }
 
         list
@@ -134,10 +134,10 @@ public abstract class KRecyclerViewAdapter
         val binder = holderBinders[position]
 
         return holderProcessors.indexOfFirst {
-            it.bindingKClass == binder.bindingKClass
+            it.inflate == binder.inflate
         }
         .updateIf({ i ->  i == -1 }) {
-            holderProcessors += HolderProcessor(binder.bindingKClass){}
+            holderProcessors += HolderProcessor(binder.inflate){}
             return holderProcessors.lastIndex
         }
     }
@@ -148,7 +148,7 @@ public abstract class KRecyclerViewAdapter
     ): ViewBindingHolder<ViewBinding> {
         val layoutInflater = LayoutInflater.from(parent.context)
         val processor = holderProcessors[viewType]
-        val binding = processor.bindingKClass.inflate(layoutInflater, parent, false)
+        val binding = processor.inflate(layoutInflater, parent, false)
         return ViewBindingHolder(binding).also(processor.process)
     }
 
@@ -169,16 +169,16 @@ public abstract class KRecyclerViewAdapter
     protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
 
     public open class HolderProcessor<out VB : ViewBinding> (
-        internal val bindingKClass: KClass<@UnsafeVariance VB>,
+        internal val inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
         internal val process: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
     )
 
     public open class HolderBinder<out VB : ViewBinding>(
-        internal val bindingKClass: KClass<@UnsafeVariance VB>,
+        internal val inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
         internal val id: Any?,
         internal val contentId: Any?,
         internal val onBindHolder: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
     )
 
-    public open class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
+    public open class ViewBindingHolder<out VB : ViewBinding>(public val binding: VB) : ViewHolder(binding.root)
 }
