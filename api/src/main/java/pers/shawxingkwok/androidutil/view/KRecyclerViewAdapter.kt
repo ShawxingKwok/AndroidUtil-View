@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.reflect.KClass
 
 /**
  * See [docs](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#krecyclerviewadapter)
