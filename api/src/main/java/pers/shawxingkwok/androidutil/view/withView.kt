@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import pers.shawxingkwok.ktutil.KReadWriteProperty
+import java.lang.Exception
 import kotlin.reflect.KProperty
 
 private object UNINITIALIZED
@@ -31,12 +32,15 @@ public fun <T> Fragment.withView(initialize: () -> T): KReadWriteProperty<Fragme
         }
 
         fun requireRightState(thisRef: Fragment, property: KProperty<*>){
+            // permitted before onCreateView
+            thisRef.viewLifecycleOwnerLiveData.value ?: return
+
+            // forbidden after onDestroyView
             try {
                 thisRef.viewLifecycleOwner
-            }catch (e: IllegalStateException){
+            }catch (e: Exception){
                 error(
-                    "Can't access ${thisRef.javaClass.canonicalName}.${property.name} " +
-                    "before onCreateView() or after onDestroyView()"
+                    "Can't access ${thisRef.javaClass.canonicalName}.${property.name} after onDestroyView()"
                 )
             }
         }

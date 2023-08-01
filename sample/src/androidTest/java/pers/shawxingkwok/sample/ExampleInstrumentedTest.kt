@@ -1,5 +1,6 @@
 package pers.shawxingkwok.sample
 
+import androidx.fragment.app.Fragment
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
