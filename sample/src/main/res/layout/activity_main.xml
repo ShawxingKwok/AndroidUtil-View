@@ -9,7 +9,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_main"
-        android:name="pers.shawxingkwok.sample.ui.main.HiddenFragment"
+        android:name="pers.shawxingkwok.sample.ui.main.MainFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
