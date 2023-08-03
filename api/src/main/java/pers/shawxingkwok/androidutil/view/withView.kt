@@ -33,15 +33,14 @@ public fun <T> Fragment.withView(initialize: () -> T): KReadOnlyProperty<Fragmen
         }
 
         override fun getValue(thisRef: Fragment, property: KProperty<*>): T {
-            if (thisRef.viewLifecycleOwnerLiveData.value != null)
-                // forbidden after onDestroyView
-                try {
-                    thisRef.viewLifecycleOwner
-                }catch (e: Exception){
-                    error(
-                        "Can't access ${thisRef.javaClass.canonicalName}.${property.name} after onDestroyView()."
-                    )
-                }
+            try {
+                thisRef.viewLifecycleOwner
+            }catch (e: Exception){
+                error(
+                    "Can't access ${thisRef.javaClass.canonicalName}.${property.name} " +
+                    "before `onCreateView()` and after `onDestroyView()`."
+                )
+            }
 
             if (t === UNINITIALIZED) t = initialize()
 
@@ -61,7 +60,6 @@ public fun <T> ComponentActivity.withView(initialize: () -> T): KReadOnlyPropert
         override fun onDelegate(thisRef: ComponentActivity, property: KProperty<*>) {
             thisRef.lifecycle.addObserver(object : DefaultLifecycleObserver{
                 override fun onCreate(owner: LifecycleOwner) {
-                    super.onCreate(owner)
                     if (t === UNINITIALIZED)
                         t = initialize()
                 }
