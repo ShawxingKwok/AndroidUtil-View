@@ -10,8 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.*
-import pers.shawxingkwok.ktutil.lazyFast
-import pers.shawxingkwok.ktutil.mutableLazy
+import pers.shawxingkwok.ktutil.fastLazy
 import pers.shawxingkwok.ktutil.updateIf
 import java.lang.Runnable
 import java.util.concurrent.LinkedBlockingQueue
@@ -115,7 +114,7 @@ public abstract class KRecyclerViewAdapter
         }
     }
 
-    private val holderProcessors: MutableList<HolderProcessor<ViewBinding>> by lazyFast {
+    private val holderProcessors: MutableList<HolderProcessor<ViewBinding>> by fastLazy {
         val list = mutableListOf<HolderProcessor<ViewBinding>>().also(::onHoldersCreated)
 
         require(list.distinctBy { it.inflate }.size == list.size){
@@ -125,7 +124,7 @@ public abstract class KRecyclerViewAdapter
         list
     }
 
-    private var holderBinders: List<HolderBinder<ViewBinding>> by mutableLazy {
+    private var holderBinders: List<HolderBinder<ViewBinding>> by fastLazy {
         mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
     }
 

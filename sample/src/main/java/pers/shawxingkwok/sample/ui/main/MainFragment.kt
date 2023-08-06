@@ -8,14 +8,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.dylanc.viewbinding.nonreflection.binding
 import pers.shawxingkwok.androidutil.view.collectOnResume
 import pers.shawxingkwok.androidutil.view.onClick
-import pers.shawxingkwok.ktutil.lazyFast
+import pers.shawxingkwok.ktutil.fastLazy
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.FragmentMainBinding
 
 class MainFragment : Fragment(R.layout.fragment_main) {
     private val binding by binding(FragmentMainBinding::bind)
     private val vm: MainViewModel by viewModels()
-    private val msgAdapter by lazyFast(::MsgAdapter)
+    private val msgAdapter by fastLazy(::MsgAdapter)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
