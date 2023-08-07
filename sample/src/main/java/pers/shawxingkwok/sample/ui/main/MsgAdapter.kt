@@ -10,7 +10,7 @@ class MsgAdapter : KRecyclerViewAdapter() {
 
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
-            if (msg.fromMe)
+            if (msg.isFromMe)
                 HolderBinder(
                     inflate = ItemMsgSendBinding::inflate,
                     id = msg.id,
