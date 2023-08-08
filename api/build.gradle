@@ -47,8 +47,8 @@ dependencies {
 
 dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
-    implementation 'io.github.shawxingkwok:android-util-core:1.0.0-SNAPSHOT'
-    implementation 'io.github.shawxingkwok:kt-util:1.0.0-SNAPSHOT'
+    implementation 'io.github.shawxingkwok:android-util-core:1.0.0'
+    implementation 'io.github.shawxingkwok:kt-util:1.0.0'
 }
 
 tasks.withType(KotlinCompile).configureEach{
@@ -58,8 +58,13 @@ tasks.withType(KotlinCompile).configureEach{
 
 // publish
 mavenPublishing {
+    def artifactId = "android-util-view"
+    def version = "1.0.0"
+    def isSnapshot = false
+
+    if (isSnapshot) version += "SNAPSHOT"
     pom {
-        coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
+        coordinates("io.github.shawxingkwok", artifactId, version)
         def repoName = "AndroidUtil-View"
         name = repoName
         description = "Personal android view util"
