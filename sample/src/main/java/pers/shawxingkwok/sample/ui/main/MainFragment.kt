@@ -28,7 +28,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         vm.msgsFlow.collectOnResume{
             msgAdapter.msgs = it
             binding.etMsg.text.clear()
-            // Always use update() or update{ ... } after changing data in the adapter.
+
+            /**
+             * Always use `update()` or `update{ ... }` after changing data in the adapter.
+             *
+             * The lambda is called after the recyclerview submits the update to screen.
+             * Since data may change too frequently, the previous passed lambda may be omitted.
+             */
             msgAdapter.update {
                 binding.rv.scrollToPosition(msgAdapter.itemCount - 1)
             }
