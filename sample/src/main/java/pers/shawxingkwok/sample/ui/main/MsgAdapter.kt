@@ -6,11 +6,13 @@ import pers.shawxingkwok.sample.databinding.ItemMsgReceiveBinding
 import pers.shawxingkwok.sample.databinding.ItemMsgSendBinding
 
 class MsgAdapter : KRecyclerViewAdapter() {
-    // any sets of data of any types
+    // any sets of source data of any types
     var msgs: List<Msg> = emptyList()
 
-    // In case you need to make some fixed processing of `ViewHolder` after its automatic
-    // creation regardless of `position`.
+    /**
+     * Override `onHoldersCreated` in case you need to make some fixed processing of `ViewHolder`
+     * after its automatic creation regardless of `position`.
+     */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
         processors += HolderProcessor(ItemMsgSendBinding::inflate){
             // Here is allowed to set Listeners on view with adapterPosition to get data, which is,
