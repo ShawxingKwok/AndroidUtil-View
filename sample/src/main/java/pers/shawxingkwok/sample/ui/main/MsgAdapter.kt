@@ -15,8 +15,8 @@ class MsgAdapter : KRecyclerViewAdapter() {
      */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
         processors += HolderProcessor(ItemMsgSendBinding::inflate){
-            // Here is allowed to set Listeners on view with adapterPosition to get data, which is,
-            // however, unclear. Just take this step in arrange which costs ignorable more memories.
+            // Here is allowed to set listeners in which you get data via adapterPosition. However, it's
+            // unclear. Just take that step in `arrange` which costs ignorable more memories.
         }
 
         processors += HolderProcessor(ItemMsgReceiveBinding::inflate){
