@@ -2,9 +2,11 @@
 
 package pers.shawxingkwok.sample.ui.main
 
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
-import pers.shawxingkwok.androidutil.view.onClick
 import pers.shawxingkwok.sample.databinding.ItemMsgReceiveBinding
 import pers.shawxingkwok.sample.databinding.ItemMsgSendBinding
 
@@ -17,43 +19,44 @@ class MsgAdapter : KRecyclerViewAdapter() {
      * after its automatic creation regardless of `position`.
      */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
-        processors += HolderProcessor(ItemMsgSendBinding::inflate){ holder ->
-            // Here is allowed to set listeners in which you get data via adapterPosition. However, it's
-            // unclear. Just take this step in `arrange` which costs ignorable more memories.
-            holder.binding.root.onClick{
-                val msg = msgs[holder.adapterPosition]
-                if (msg.isFromMe){
-                    // ...
-                } else {
-                    // ...
-                }
-            }
+        processors += HolderProcessor(ItemMsgSendBinding::inflate){
+            // ...
         }
 
         processors += HolderProcessor(ItemMsgReceiveBinding::inflate){
-
+            // ...
         }
     }
 
     // main logic
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
+            // This customed class is for the shared functionality in multiple `viewHolders`.
+            class MsgHolderBinder<VB: ViewBinding>(
+                inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
+                getTextView: (VB) -> TextView,
+            )
+                : HolderBinder<VB>(
+                    inflate = inflate,
+                    id = msg.id,
+                    contentId = msg.text,
+                    onBindHolder = { holder ->
+                        getTextView(holder.binding).text = msg.text
+
+                        // This listener could be set in `onHoldersCreated` in which `msg` is got via
+                        // `adapterPosition`. However, the saved few memories are less valuable than
+                        // the convenience of getting `msg` here.
+                        holder.itemView.setOnLongClickListener {
+                            // Generally, here popups up a window allowing for coping and forwarding `msg`.
+                            return@setOnLongClickListener true
+                        }
+                    },
+                )
+
             if (msg.isFromMe)
-                HolderBinder(
-                    inflate = ItemMsgSendBinding::inflate,
-                    id = msg.id,
-                    contentId = msg.text,
-                ){
-                    it.binding.tv.text = msg.text
-                }
+                MsgHolderBinder(ItemMsgSendBinding::inflate){ it.tv }
             else
-                HolderBinder(
-                    inflate = ItemMsgReceiveBinding::inflate,
-                    id = msg.id,
-                    contentId = msg.text,
-                ){
-                    it.binding.tv.text = msg.text
-                }
+                MsgHolderBinder(ItemMsgReceiveBinding::inflate){ it.tv }
         }
     }
 }
