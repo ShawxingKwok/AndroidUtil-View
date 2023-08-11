@@ -31,7 +31,7 @@ class MsgAdapter : KRecyclerViewAdapter() {
     // main logic
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
-            // This function is for the shared functionality in multiple `viewHolders`.
+            // This function, which may be needless, is for the shared functionality in multiple `viewHolders`.
             fun <VB: ViewBinding> MsgHolderBinder(
                 inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
                 getTextView: (VB) -> TextView,
