@@ -31,27 +31,27 @@ class MsgAdapter : KRecyclerViewAdapter() {
     // main logic
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
-            // This customed class is for the shared functionality in multiple `viewHolders`.
-            class MsgHolderBinder<VB: ViewBinding>(
+            // This function is for the shared functionality in multiple `viewHolders`.
+            fun <VB: ViewBinding> MsgHolderBinder(
                 inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
                 getTextView: (VB) -> TextView,
-            )
-                : HolderBinder<VB>(
+            ) =
+                HolderBinder(
                     inflate = inflate,
                     id = msg.id,
-                    contentId = msg.text,
-                    onBindHolder = { holder ->
-                        getTextView(holder.binding).text = msg.text
+                    contentId = msg.text
+                ) { holder ->
+                    getTextView(holder.binding).text = msg.text
 
-                        // This listener could be set in `onHoldersCreated` in which `msg` is got via
-                        // `adapterPosition`. However, the saved few memories are less valuable than
-                        // the convenience of getting `msg` here.
-                        holder.itemView.setOnLongClickListener {
-                            // Generally, here popups up a window allowing for coping and forwarding `msg`.
-                            return@setOnLongClickListener true
-                        }
-                    },
-                )
+                    // This listener could be set in `onHoldersCreated` in which `msg` is got via
+                    // `adapterPosition`. However, the saved few memories are less valuable than
+                    // the convenience of getting `msg` here.
+                    holder.itemView.setOnLongClickListener {
+                        // For a general message item in the chat page,
+                        // here popups up a window allowing for coping and forwarding `msg`.
+                        return@setOnLongClickListener true
+                    }
+                }
 
             if (msg.isFromMe)
                 MsgHolderBinder(ItemMsgSendBinding::inflate){ it.tv }
