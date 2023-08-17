@@ -13,14 +13,16 @@ class MainViewModel : ViewModel(){
     private val _msgsFlow = MutableStateFlow(emptyList<Msg>())
     val msgsFlow: Flow<List<Msg>> get() = _msgsFlow
 
+    private val newID: Long get() = _msgsFlow.value.size.toLong()
+
     fun sendMsg(text: String){
-        val greeting = Msg(0, true, text)
+        val greeting = Msg(newID, true, text)
         _msgsFlow.update { it + greeting }
 
         if (text == "How are you")
             viewModelScope.launch {
                 delay(1000)
-                val reply = Msg(1, false, "Good")
+                val reply = Msg(newID, false, "Good")
                 _msgsFlow.update { it + reply }
             }
     }
