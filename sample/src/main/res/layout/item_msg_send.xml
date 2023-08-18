@@ -16,8 +16,8 @@
             />
 
     <ImageView
+            android:id="@+id/img_avatar"
             android:layout_marginEnd="10dp"
-            android:src="@drawable/male"
             android:layout_width="50dp"
             android:layout_height="50dp"/>
 </LinearLayout>

@@ -1,5 +1,3 @@
-@file:Suppress("ControlFlowWithEmptyBody")
-
 package pers.shawxingkwok.sample.ui.main
 
 import android.view.LayoutInflater
@@ -7,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
+import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.ItemMsgReceiveBinding
 import pers.shawxingkwok.sample.databinding.ItemMsgSendBinding
 
@@ -19,12 +18,14 @@ class MsgAdapter : KRecyclerViewAdapter() {
      * after its automatic creation regardless of `position`.
      */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
+        // Set contact avatars loaded from database or remote in real cases.
+
         processors += HolderProcessor(ItemMsgSendBinding::inflate){
-            // ...
+            it.binding.imgAvatar.setImageResource(R.drawable.male)
         }
 
         processors += HolderProcessor(ItemMsgReceiveBinding::inflate){
-            // ...
+            it.binding.imgAvatar.setImageResource(R.drawable.female)
         }
     }
 
@@ -35,6 +36,8 @@ class MsgAdapter : KRecyclerViewAdapter() {
             fun <VB: ViewBinding> MsgHolderBinder(
                 inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
                 getTextView: (VB) -> TextView,
+                // this parameter is needless in this case, but so common that here displays it
+                onBindHolder: (holder: ViewBindingHolder<VB>) -> Unit
             ) =
                 HolderBinder(
                     inflate = inflate,
@@ -51,12 +54,18 @@ class MsgAdapter : KRecyclerViewAdapter() {
                         // here popups up a window allowing for coping and forwarding `msg`.
                         return@setOnLongClickListener true
                     }
+
+                    onBindHolder(holder)
                 }
 
             if (msg.isFromMe)
-                MsgHolderBinder(ItemMsgSendBinding::inflate){ it.tv }
+                MsgHolderBinder(ItemMsgSendBinding::inflate, ItemMsgSendBinding::tv){
+
+                }
             else
-                MsgHolderBinder(ItemMsgReceiveBinding::inflate){ it.tv }
+                MsgHolderBinder(ItemMsgReceiveBinding::inflate, ItemMsgReceiveBinding::tv){
+
+                }
         }
     }
 }
