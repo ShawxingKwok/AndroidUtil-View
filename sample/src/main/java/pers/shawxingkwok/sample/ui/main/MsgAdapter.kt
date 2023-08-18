@@ -1,8 +1,6 @@
 package pers.shawxingkwok.sample.ui.main
 
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
