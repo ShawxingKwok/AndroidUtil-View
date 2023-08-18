@@ -1,4 +1,4 @@
-package pers.shawxingkwok.sample.ui.main
+package pers.shawxingkwok.sample.cn
 
 import android.os.Bundle
 import android.view.View
@@ -11,8 +11,10 @@ import pers.shawxingkwok.androidutil.view.onClick
 import pers.shawxingkwok.ktutil.fastLazy
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.FragmentMainBinding
+import pers.shawxingkwok.sample.ui.main.MainViewModel
+import pers.shawxingkwok.sample.ui.main.MsgAdapter
 
-class MainFragment : Fragment(R.layout.fragment_main) {
+class CNMainFragment : Fragment(R.layout.fragment_main) {
     private val binding by binding(FragmentMainBinding::bind)
     private val vm: MainViewModel by viewModels()
     private val msgAdapter by fastLazy(::MsgAdapter)
@@ -30,11 +32,12 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             msgAdapter.msgs = it
 
             /**
-             * Always use `update()` or `update{ ... }` after changing data in the adapter.
-             *
-             * The lambda is called after the recyclerview submits the update to screen.
-             * Since data may change too frequently, the previous passed lambda may be omitted.
-             */
+            * 更改 adapter 数据源后要通知 adapter 更新，
+            * 但统一用 update / update { ... } 而不是 notify...
+            *
+            * 上面的 lambda 会在 RecyclerView 更新后执行。
+            * 数据可能变化得特别频繁导致只执行最后的 update，之前的 lambda 可能被省略。
+            */
             msgAdapter.update {
                 binding.rv.scrollToPosition(msgAdapter.itemCount - 1)
             }

@@ -1,4 +1,4 @@
-package pers.shawxingkwok.sample.ui.main
+package pers.shawxingkwok.sample.cn
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,18 +8,17 @@ import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.ItemMsgReceiveBinding
 import pers.shawxingkwok.sample.databinding.ItemMsgSendBinding
+import pers.shawxingkwok.sample.ui.main.Msg
 
-class MsgAdapter : KRecyclerViewAdapter() {
-    // any sets of source data of any types
+class CNMsgAdapter : KRecyclerViewAdapter() {
+    // 供外部修改的数据源，任意类型/份数
     var msgs: List<Msg> = emptyList()
 
     /**
-     * Override `onHoldersCreated` if there are some time-consuming ViewHolder processing
-     * without data source.
+     * 加工刚创建好的 ViewHolder，一般处理一些耗时且与数据源无关的任务，非刚需。
      */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
-        // Set contact avatars loaded from database or remote in real cases.
-
+        // 这里加载头像，一般从本地或远程获取
         processors += HolderProcessor(ItemMsgSendBinding::inflate){
             it.binding.imgAvatar.setImageResource(R.drawable.male)
         }
@@ -29,41 +28,42 @@ class MsgAdapter : KRecyclerViewAdapter() {
         }
     }
 
-    // main logic
+    // 以 List 形式排列组合 ViewHolder
+    // 用 HolderBinder(XxBinding:inflate, id, contentId){ holder -> } 填充 binders。
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
-            // This function, which may be needless, is for the shared functionality in multiple `viewHolders`.
+            // 可设一个方法做些共享的处理
             fun <VB: ViewBinding> MsgHolderBinder(
                 inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
                 getTextView: (VB) -> TextView,
-                // this parameter is needless in this case, but so common that here displays it
+                // 这个参数在本示例中是不需要的，但很常见
                 onBindHolder: (holder: ViewBindingHolder<VB>) -> Unit
             ) =
                 HolderBinder(
                     inflate = inflate,
-                    id = msg.id,
-                    contentId = msg.text
+                    id = msg.id, // 用于区分同类 Item，不同 ViewBinding 之间的 item id 可以相同
+                    contentId = msg.text // 用于告知 item 内容是否要更新，
+                                         // msg 一般为 data class, 亦可偷懒直接用 msg
                 ) { holder ->
                     getTextView(holder.binding).text = msg.text
 
-                    // This listener could be set in `onHoldersCreated` in which `msg` is got via
-                    // `adapterPosition`. However, the saved few memories are less valuable than
-                    // the convenience of getting `msg` here.
+                    // 在消息上设置长按监听。虽然在 onHoldersCreated 设置监听中能省点内存，
+                    // 但那里需要通过 adapterPosition 获取数据，不直观。
                     holder.itemView.setOnLongClickListener {
-                        // For a general message item in the chat page,
-                        // here popups up a window allowing for coping and forwarding `msg`.
+                        // 这里一般弹窗，提示复制、转发等等。
                         return@setOnLongClickListener true
                     }
 
                     onBindHolder(holder)
                 }
 
+            // msg item
             if (msg.isFromMe)
-                MsgHolderBinder(ItemMsgSendBinding::inflate, ItemMsgSendBinding::tv){
-
+                MsgHolderBinder(ItemMsgSendBinding::inflate, { it.tv }){
+                    // 继续对 holder 做些处理，其中的 view 可通过 it.binding 获取
                 }
             else
-                MsgHolderBinder(ItemMsgReceiveBinding::inflate, ItemMsgReceiveBinding::tv){
+                MsgHolderBinder(ItemMsgReceiveBinding::inflate, { it.tv }){
 
                 }
         }
