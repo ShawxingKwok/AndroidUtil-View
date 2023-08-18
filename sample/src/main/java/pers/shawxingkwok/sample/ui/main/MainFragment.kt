@@ -30,7 +30,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             msgAdapter.msgs = it
 
             /**
-             * Always use `update()` or `update{ ... }` after changing data in the adapter.
+             * Use `update()` or `update{ ... }` insteadOf `notify...` after data changes.
              *
              * The lambda is called after the recyclerview submits the update to screen.
              * Since data may change too frequently, the previous passed lambda may be omitted.

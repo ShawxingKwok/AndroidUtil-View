@@ -1,6 +1,7 @@
 package pers.shawxingkwok.sample.ui.main
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.viewbinding.ViewBinding
@@ -9,18 +10,20 @@ import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.ItemMsgReceiveBinding
 import pers.shawxingkwok.sample.databinding.ItemMsgSendBinding
 
+// In an one-to-one chat page
 class MsgAdapter : KRecyclerViewAdapter() {
-    // any sets of source data of any types
+    // mutable data source
     var msgs: List<Msg> = emptyList()
 
     /**
-     * Override `onHoldersCreated` if there are some time-consuming ViewHolder processing
-     * without data source.
+     * Not essential.
+     *
+     * Makes some bindings unrelated to [msgs] in freshly created viewHolders.
+     * Here takes the example of loading avatars.
      */
     override fun onHoldersCreated(processors: MutableList<HolderProcessor<ViewBinding>>) {
-        // Set contact avatars loaded from database or remote in real cases.
-
         processors += HolderProcessor(ItemMsgSendBinding::inflate){
+            // Flexibly loaded from local or remote in real cases.
             it.binding.imgAvatar.setImageResource(R.drawable.male)
         }
 
@@ -29,42 +32,44 @@ class MsgAdapter : KRecyclerViewAdapter() {
         }
     }
 
-    // main logic
+    // This function may be needless.
+    private fun sharedProcess(msg: Msg, tv: TextView, itemView: View){
+        tv.text = msg.text
+
+        /**
+         * Set onLongClickListener in message item view.
+         *
+         * This is doable in onHoldersCreated to save memories,
+         * which is, however, less valuable than the convenience of
+         * getting msg here.
+         */
+        itemView.setOnLongClickListener {
+            // Generally, here popups up a window allowing for
+            // coping, forwarding `msg`, and so on.
+            return@setOnLongClickListener true
+        }
+    }
+
+    /**
+     * Arranges viewHolders as [List]. Add HolderBinder to [binders] with
+     *
+     * `HolderBinder(XxBinding::inflate, id, contentId){ holder -> }`
+     */
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
         binders += msgs.map { msg ->
-            // This function, which may be needless, is for the shared functionality in multiple `viewHolders`.
-            fun <VB: ViewBinding> MsgHolderBinder(
-                inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
-                getTextView: (VB) -> TextView,
-                // this parameter is needless in this case, but so common that here displays it
-                onBindHolder: (holder: ViewBindingHolder<VB>) -> Unit
-            ) =
-                HolderBinder(
-                    inflate = inflate,
-                    id = msg.id,
-                    contentId = msg.text
-                ) { holder ->
-                    getTextView(holder.binding).text = msg.text
-
-                    // This listener could be set in `onHoldersCreated` in which `msg` is got via
-                    // `adapterPosition`. However, the saved few memories are less valuable than
-                    // the convenience of getting `msg` here.
-                    holder.itemView.setOnLongClickListener {
-                        // For a general message item in the chat page,
-                        // here popups up a window allowing for coping and forwarding `msg`.
-                        return@setOnLongClickListener true
-                    }
-
-                    onBindHolder(holder)
-                }
-
             if (msg.isFromMe)
-                MsgHolderBinder(ItemMsgSendBinding::inflate, ItemMsgSendBinding::tv){
-
+                HolderBinder(
+                    inflate = ItemMsgSendBinding::inflate,
+                    id = msg.id, // for distinguishing among same kind of items.
+                                 // id could be same across different kinds of items.
+                    contentId = msg.text // Msg is generally a data class, allowing for using msg
+                                         // directly which is a little less efficient.
+                ){
+                    sharedProcess(msg, it.binding.tv, it.itemView)
                 }
             else
-                MsgHolderBinder(ItemMsgReceiveBinding::inflate, ItemMsgReceiveBinding::tv){
-
+                HolderBinder(ItemMsgReceiveBinding::inflate, msg.id, msg.text){
+                    sharedProcess(msg, it.binding.tv, it.itemView)
                 }
         }
     }
