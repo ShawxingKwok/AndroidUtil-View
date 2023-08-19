@@ -1,49 +1,48 @@
 package pers.shawxingkwok.sample.ui.main
 
 import android.annotation.SuppressLint
+import android.util.Log
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
+import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter.HolderBinder
+import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter.HolderCreator
 import pers.shawxingkwok.androidutil.view.onClick
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.ItemContactBinding
 import pers.shawxingkwok.sample.databinding.ItemContactsNumberBinding
 import pers.shawxingkwok.sample.databinding.ItemInitialBinding
 import pers.shawxingkwok.sample.databinding.ItemSearchBinding
+import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 class ContactsAdapter : KRecyclerViewAdapter() {
-    // mutable data source
-    var contacts: List<Contact> = emptyList()
+    // source data
+    var contacts = emptyList<Contact>()
 
     /**
-     * Not essential.
-     *
-     * Makes some bindings unrelated to [contacts] in freshly created viewHolders.
-     * Though it's more efficient, I suggest only doing time-consuming tasks here.
+     * Build process-required [HolderCreator]s in this function.
+     * It's more efficient but not essential. I suggest only doing time-consuming tasks here.
      */
-    override fun onHoldersCreated() {
-        HolderProcessor(ItemSearchBinding::inflate){
-            // make fixed process to search item
+    override fun registerProcessRequiredHolderCreators() {
+        // Take the example of making fixed process to search item.
+        // ItemSearchBinding is the generated ViewBinding class.
+        HolderCreator(ItemSearchBinding::inflate){
+            // ...
         }
-        HolderProcessor(ItemContactBinding::inflate){
-            // make fixed process to initial tag item
-        }
-        // ... process other items if needed
     }
 
     /**
-     * Arranges viewHolders as [List] with
-     *
-     * `HolderBinder(XxBinding::inflate, id, contentId){ holder -> }`
+     * Build [HolderBinder] in this function according to the order.
      */
     @SuppressLint("SetTextI18n")
-    override fun arrange() {
+    override fun arrangeHolderBinders() {
         // Search bar
         HolderBinder(
-            ItemSearchBinding::inflate,
-            id = null, /* Distinguishes among same kind of items.
-                          id could be same across different kinds of items,
-                          and null if the item's viewBinding type is unique as ItemSearchBinding in this case.
-                       */
-            contentId = null // Notifies content to update. contentId could be null if the content is fixed.
+            inflate = ItemSearchBinding::inflate,
+            id = null, // Distinguishes among HolderBinders sharing same [inflate].
+                       // id is suggested null if the [inflate] is unique.
+            contentId = null // Notifies content to update.
+                             // contentId is suggested null if the content is fixed.
         ){
             it.itemView.onClick {
                 // ...
@@ -53,7 +52,7 @@ class ContactsAdapter : KRecyclerViewAdapter() {
         // New friends
         HolderBinder(ItemContactBinding::inflate, "New friends", null){
             it.binding.imgAvatar.setImageResource(R.drawable.newfriend)
-            it.binding.tv.text = "New friend" // probably get from resources in real cases
+            it.binding.tv.text = "New friends" // probably got from resources in real cases
             it.itemView.onClick {
                 // ...
             }
@@ -81,13 +80,9 @@ class ContactsAdapter : KRecyclerViewAdapter() {
                     it.binding.tv.text = nameInitial.toString()
                 }
             }
+
             // contact
-            HolderBinder(
-                inflate = ItemContactBinding::inflate,
-                id = contact.id,
-                contentId = contact.name // The item data's class is generally a data class,
-                                         // allowing for using contact directly which is a little less efficient.
-            ){
+            HolderBinder(ItemContactBinding::inflate, contact.id, contact){
                 it.binding.imgAvatar.setImageResource(contact.avatar)
                 it.binding.tv.text = contact.name
                 it.itemView.onClick {
