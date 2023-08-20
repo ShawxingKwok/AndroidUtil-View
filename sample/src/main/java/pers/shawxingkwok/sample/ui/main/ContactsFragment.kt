@@ -63,7 +63,8 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
              * Use `update()` or `update{ ... }` insteadOf `notify...` after data changes.
              *
              * The lambda is called after the recyclerview submits the update to screen.
-             * Since data may change too frequently, the previous passed lambda may be omitted.
+             * Since data may change too frequently, the previous passed lambda may be omitted,
+             * which is an optimization.
              */
             contactsAdapter.update()
         }
