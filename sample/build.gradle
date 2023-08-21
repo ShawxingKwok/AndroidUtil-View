@@ -59,7 +59,7 @@ tasks.withType(KotlinCompile).configureEach{
 }
 
 dependencies {
-    implementation("io.github.shawxingkwok:kt-util:1.0.0")
+    implementation("io.github.shawxingkwok:kt-util:1.0.2")
     implementation project(":api") // 'io.github.shawxingkwok:android-util-view:1.0.0'
 }
 //endregion
