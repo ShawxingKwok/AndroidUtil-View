@@ -40,7 +40,8 @@ class ContactsAdapter : KRecyclerViewAdapter() {
     override fun arrangeHolderBinders() {
         // Search bar
         HolderBinder(
-            inflate = ItemSearchBinding::inflate, // function inflate in the corresponding ViewBinding subclass
+            inflate = ItemSearchBinding::inflate, // is the function inflate in the corresponding
+                                                 // ViewBinding subclass
             id = null, // Distinguishes among HolderBinders sharing same [inflate].
                        // id is suggested null if [inflate] is unique.
             contentId = null // Notifies content to update.

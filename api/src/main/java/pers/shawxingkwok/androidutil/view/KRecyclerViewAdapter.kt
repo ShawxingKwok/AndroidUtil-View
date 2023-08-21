@@ -60,7 +60,9 @@ public abstract class KRecyclerViewAdapter
     }
 
     /**
-     * Build process-required [HolderCreator]s in this function.
+     * [HolderCreator] could be automatically created for building [ViewBindingHolder]
+     * which is the subclass of [ViewHolder]。But there is no initial process. You could register process-required
+     * [HolderCreator]s in this function to do some fixed tasks only once.
      * It's more efficient but not essential. I suggest only doing time-consuming tasks here.
      */
     protected abstract fun registerProcessRequiredHolderCreators()
@@ -172,7 +174,7 @@ public abstract class KRecyclerViewAdapter
     ){
         init {
             require(creators.none{ it.inflate == inflate }){
-                "Creation helpers are distinct by 'inflate', but you register repeatedly."
+                "HolderCreators are distinct by 'inflate', but you register repeatedly."
             }
             creators += this
         }
@@ -191,9 +193,11 @@ public abstract class KRecyclerViewAdapter
      *     ...
      * }
      * ```
+     * @param inflate is the function inflate in the corresponding ViewBinding subclass.
      * @param id distinguishes among HolderBinders sharing same [inflate].
      * This is suggested null if [inflate] is unique.
      * @param contentId notifies content to update. This is suggested null if the content is fixed.
+     * @param onBind does work those in [onBindViewHolder] before.
      */
     protected open inner class HolderBinder<out VB : ViewBinding>(
         internal val inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
