@@ -20,7 +20,9 @@ class ContactsAdapter : KRecyclerViewAdapter() {
     var contacts = emptyList<Contact>()
 
     /**
-     * Build process-required [HolderCreator]s in this function.
+     * [HolderCreator] could be automatically created for building [KRecyclerViewAdapter.ViewBindingHolder]
+     * which is the subclass of [ViewHolder]。But there is no initial process. You could register process-required
+     * [HolderCreator]s in this function to do some fixed tasks only once.
      * It's more efficient but not essential. I suggest only doing time-consuming tasks here.
      */
     override fun registerProcessRequiredHolderCreators() {
@@ -38,9 +40,9 @@ class ContactsAdapter : KRecyclerViewAdapter() {
     override fun arrangeHolderBinders() {
         // Search bar
         HolderBinder(
-            inflate = ItemSearchBinding::inflate,
+            inflate = ItemSearchBinding::inflate, // function inflate in the corresponding ViewBinding subclass
             id = null, // Distinguishes among HolderBinders sharing same [inflate].
-                       // id is suggested null if the [inflate] is unique.
+                       // id is suggested null if [inflate] is unique.
             contentId = null // Notifies content to update.
                              // contentId is suggested null if the content is fixed.
         ){
@@ -92,7 +94,7 @@ class ContactsAdapter : KRecyclerViewAdapter() {
         }
 
         // Contacts number
-        HolderBinder(ItemContactsNumberBinding::inflate, null, null){
+        HolderBinder(ItemContactsNumberBinding::inflate, null, contacts.size){
             // root is TextView in this case
             it.binding.root.text = "${contacts.size} friends"
         }
