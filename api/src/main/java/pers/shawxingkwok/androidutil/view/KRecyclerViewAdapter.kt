@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import pers.shawxingkwok.ktutil.updateIf
 
 /**
- * See [docs](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#krecyclerviewadapter)
+ * See [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-view/#krecyclerviewadapter)
  */
 public abstract class KRecyclerViewAdapter
     : RecyclerView.Adapter<KRecyclerViewAdapter.ViewBindingHolder<ViewBinding>>()
