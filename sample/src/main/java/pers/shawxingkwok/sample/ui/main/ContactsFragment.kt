@@ -46,7 +46,7 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
         )
         .let(::flowOf)
 
-    private val contactsAdapter by fastLazy(::ContactsAdapter)
+    private val contactsAdapter = ContactsAdapter()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
