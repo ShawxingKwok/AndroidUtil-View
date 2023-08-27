@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.*
 import pers.shawxingkwok.ktutil.updateIf
 
 /**
@@ -47,11 +46,6 @@ public abstract class KRecyclerViewAdapter
 
     private val updateCallback = AdapterListUpdateCallback(this)
 
-    private val calculatingScope = CoroutineScope(Dispatchers.Default)
-    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    private var calculatingJob: Job? = null
-
     private val creators = mutableListOf<HolderCreator<ViewBinding>>()
     private lateinit var oldBinders: List<HolderBinder<ViewBinding>>
     private var newBinders = mutableListOf<HolderBinder<ViewBinding>>()
@@ -70,71 +64,48 @@ public abstract class KRecyclerViewAdapter
      * [HolderCreator]s in this function to do some fixed tasks only once.
      * It's more efficient but not essential. I suggest only doing time-consuming tasks here.
      */
-    protected abstract fun registerProcessRequiredHolderCreators()
+    protected open fun registerProcessRequiredHolderCreators(){}
 
     /**
      * Build [HolderBinder] in this function according to the order.
      */
     protected abstract fun arrangeHolderBinders()
 
+    protected open fun onUpdated(){}
+
     /**
-     * Notifies [KRecyclerViewAdapter] to update and call [onFinish].
+     * Notifies [KRecyclerViewAdapter] to update.
      *
-     * Note that [update] may be called too frequently, which makes some previous [onFinish] omitted.
-     *
-     * If your old and new items are sorted by the same constraint and items never move (swap positions),
-     * you can set [movesDetected] false to disable move detection which takes O(N^2) time where N is
-     * the number of added, moved, removed items.
+     * If your items may be massive, old and new items are sorted by the same constraint,
+     * and items never move (swap positions), you can set [movesDetected] false to disable
+     * move detection which takes O(N^2) time where N is the number of added, moved,
+     * removed items.
      */
-    public fun update(movesDetected: Boolean = true, onFinish: (() -> Unit)? = null) {
-        if (!isInitialized){
+    public fun update(movesDetected: Boolean = true) {
+        if (!isInitialized) {
             initialize()
-            onFinish?.invoke()
             return
         }
-        calculatingJob?.cancel()
+
         newBinders = mutableListOf()
         arrangeHolderBinders()
 
-        fun execute(act: () -> Unit) {
-            oldBinders = newBinders
-            act()
-            onFinish?.invoke()
-        }
+        val diffCallback = DiffCallback(oldBinders, newBinders)
+        oldBinders = newBinders
 
         when {
             // fast simple remove all
-            newBinders.none() -> {
-                val removedCount = oldBinders.size
-                execute {
-                    updateCallback.onRemoved(0, removedCount)
-                }
-                return
-            }
+            newBinders.none() -> updateCallback.onRemoved(0, oldBinders.size)
 
             // fast simple insert first
-            oldBinders.none() -> {
-                execute {
-                    updateCallback.onInserted(0, newBinders.size)
-                }
-                return
+            oldBinders.none() -> updateCallback.onInserted(0, newBinders.size)
+
+            else -> {
+                val result = DiffUtil.calculateDiff(diffCallback, movesDetected)
+                result.dispatchUpdatesTo(updateCallback)
             }
         }
-
-        // compute in another thread
-        // and switch to the main thread and update UI
-        val diffCallback = DiffCallback(oldBinders, newBinders)
-
-        calculatingJob = calculatingScope.launch{
-            val result = DiffUtil.calculateDiff(diffCallback, movesDetected)
-
-            // withContext(Dispatchers.Main.Immediate) may be half cancelled.
-            mainScope.launch {
-                execute {
-                    result.dispatchUpdatesTo(updateCallback)
-                }
-            }
-        }
+        onUpdated()
     }
 
     final override fun getItemViewType(position: Int): Int {
@@ -143,10 +114,10 @@ public abstract class KRecyclerViewAdapter
         return creators.indexOfFirst {
             it.inflate == binder.inflate
         }
-        .updateIf({ i ->  i == -1 }) {
-            creators += HolderCreator(binder.inflate){}
-            return creators.lastIndex
-        }
+            .updateIf({ i ->  i == -1 }) {
+                creators += HolderCreator(binder.inflate){}
+                return creators.lastIndex
+            }
     }
 
     final override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingHolder<ViewBinding> {

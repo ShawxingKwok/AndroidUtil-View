@@ -53,14 +53,10 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
             contactsAdapter.contacts = it
 
             /**
-             * Use `update()` or `update{ ... }` insteadOf `notify...` after data changes.
+             * Use `update()` insteadOf `notify...` after data changes.
              *
-             * The lambda is called after the recyclerview submits the update to screen.
-             * Since data may change too frequently, the previous passed lambda may be omitted,
-             * which is an optimization.
-             *
-             * If there is no moved item among lots of items, you could use `update(false)` or
-             * `update(false){ ... }` to accelerate the calculating.
+             * If there is no moved or positions swapped item among massive items, you could
+             * use `update(false)` to accelerate the calculating.
              */
             contactsAdapter.update()
         }

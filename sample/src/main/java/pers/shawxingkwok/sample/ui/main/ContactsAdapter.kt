@@ -95,4 +95,6 @@ class ContactsAdapter : KRecyclerViewAdapter() {
             it.binding.root.text = "${contacts.size} friends"
         }
     }
+
+    override fun onUpdated() {}
 }
