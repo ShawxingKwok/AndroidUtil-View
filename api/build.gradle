@@ -49,6 +49,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'io.github.shawxingkwok:android-util-core:1.0.0'
     implementation 'io.github.shawxingkwok:kt-util:1.0.2'
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 }
 
 tasks.withType(KotlinCompile).configureEach{
@@ -59,7 +61,7 @@ tasks.withType(KotlinCompile).configureEach{
 // publish
 mavenPublishing {
     def artifactId = "android-util-view"
-    def version = "1.0.2"
+    def version = "1.0.3"
     def isSnapshot = false
 
     if (isSnapshot) version += "-SNAPSHOT"

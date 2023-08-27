@@ -1,20 +1,13 @@
 package pers.shawxingkwok.sample.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dylanc.viewbinding.nonreflection.binding
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import pers.shawxingkwok.androidutil.view.collectOnResume
-import pers.shawxingkwok.ktutil.fastLazy
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.FragmentMainBinding
 
@@ -65,6 +58,9 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
              * The lambda is called after the recyclerview submits the update to screen.
              * Since data may change too frequently, the previous passed lambda may be omitted,
              * which is an optimization.
+             *
+             * If there is no moved item among lots of items, you could use `update(false)` or
+             * `update(false){ ... }` to accelerate the calculating.
              */
             contactsAdapter.update()
         }

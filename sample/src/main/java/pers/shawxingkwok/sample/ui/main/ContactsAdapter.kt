@@ -1,19 +1,13 @@
 package pers.shawxingkwok.sample.ui.main
 
 import android.annotation.SuppressLint
-import android.util.Log
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
-import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter.HolderBinder
-import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter.HolderCreator
 import pers.shawxingkwok.androidutil.view.onClick
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.ItemContactBinding
 import pers.shawxingkwok.sample.databinding.ItemContactsNumberBinding
 import pers.shawxingkwok.sample.databinding.ItemInitialBinding
 import pers.shawxingkwok.sample.databinding.ItemSearchBinding
-import kotlin.system.measureTimeMillis
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 class ContactsAdapter : KRecyclerViewAdapter() {
     // source data

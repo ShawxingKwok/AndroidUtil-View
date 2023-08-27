@@ -18,26 +18,12 @@ import pers.shawxingkwok.ktutil.updateIf
 public abstract class KRecyclerViewAdapter
     : RecyclerView.Adapter<KRecyclerViewAdapter.ViewBindingHolder<ViewBinding>>()
 {
-    private val updateCallback = AdapterListUpdateCallback(this)
-
-    private val calculatingScope = CoroutineScope(Dispatchers.Default)
-    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    private var calculatingJob: Job? = null
-
-    private val creators = mutableListOf<HolderCreator<ViewBinding>>()
-    private lateinit var oldBinders: List<HolderBinder<ViewBinding>>
-    private var newBinders = mutableListOf<HolderBinder<ViewBinding>>()
-
-    private var isInitialized = false
-    private fun initialize(){
-        isInitialized = true
-        registerProcessRequiredHolderCreators()
-        arrangeHolderBinders()
-        oldBinders = newBinders
-    }
-
-    private val diffCallback = object : DiffUtil.Callback() {
+    private class DiffCallback(
+        private val oldBinders: List<HolderBinder<*>>,
+        private val newBinders: List<HolderBinder<*>>
+    )
+        : DiffUtil.Callback()
+    {
         override fun getOldListSize() = oldBinders.size
 
         override fun getNewListSize(): Int = newBinders.size
@@ -59,6 +45,25 @@ public abstract class KRecyclerViewAdapter
             oldBinders[oldItemPosition].contentId == newBinders[newItemPosition].contentId
     }
 
+    private val updateCallback = AdapterListUpdateCallback(this)
+
+    private val calculatingScope = CoroutineScope(Dispatchers.Default)
+    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private var calculatingJob: Job? = null
+
+    private val creators = mutableListOf<HolderCreator<ViewBinding>>()
+    private lateinit var oldBinders: List<HolderBinder<ViewBinding>>
+    private var newBinders = mutableListOf<HolderBinder<ViewBinding>>()
+
+    private var isInitialized = false
+    private fun initialize(){
+        isInitialized = true
+        registerProcessRequiredHolderCreators()
+        arrangeHolderBinders()
+        oldBinders = newBinders
+    }
+
     /**
      * [HolderCreator] could be automatically created for building [ViewBindingHolder]
      * which is the subclass of [ViewHolder]。But there is no initial process. You could register process-required
@@ -76,8 +81,12 @@ public abstract class KRecyclerViewAdapter
      * Notifies [KRecyclerViewAdapter] to update and call [onFinish].
      *
      * Note that [update] may be called too frequently, which makes some previous [onFinish] omitted.
+     *
+     * If your old and new items are sorted by the same constraint and items never move (swap positions),
+     * you can set [movesDetected] false to disable move detection which takes O(N^2) time where N is
+     * the number of added, moved, removed items.
      */
-    public fun update(onFinish: (() -> Unit)? = null) {
+    public fun update(movesDetected: Boolean = true, onFinish: (() -> Unit)? = null) {
         if (!isInitialized){
             initialize()
             onFinish?.invoke()
@@ -114,8 +123,10 @@ public abstract class KRecyclerViewAdapter
 
         // compute in another thread
         // and switch to the main thread and update UI
+        val diffCallback = DiffCallback(oldBinders, newBinders)
+
         calculatingJob = calculatingScope.launch{
-            val result = DiffUtil.calculateDiff(diffCallback)
+            val result = DiffUtil.calculateDiff(diffCallback, movesDetected)
 
             // withContext(Dispatchers.Main.Immediate) may be half cancelled.
             mainScope.launch {
