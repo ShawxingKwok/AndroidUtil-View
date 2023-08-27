@@ -55,8 +55,8 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
             /**
              * Use `update()` insteadOf `notify...` after data changes.
              *
-             * If there is no moved or positions swapped item among massive items, you could
-             * use `update(false)` to accelerate the calculating.
+             * If there is no moved or position-swapped item among massive items at the moment,
+             * you could use `update(false)` to accelerate the calculating.
              */
             contactsAdapter.update()
         }
