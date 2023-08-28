@@ -4,6 +4,7 @@ package pers.shawxingkwok.androidutil.view
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.MainThread
 import androidx.recyclerview.widget.AdapterListUpdateCallback
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -60,8 +61,8 @@ public abstract class KRecyclerViewAdapter
 
     /**
      * [HolderCreator] could be automatically created for building [ViewBindingHolder]
-     * which is the subclass of [ViewHolder]。But there is no initial process. You could register process-required
-     * [HolderCreator]s in this function to do some fixed tasks only once.
+     * which is the subclass of [ViewHolder]。But there is no initial process. You could
+     * register process-required [HolderCreator]s in this function to do some fixed tasks only once.
      * It's more efficient but not essential. I suggest only doing time-consuming tasks here.
      */
     protected open fun registerProcessRequiredHolderCreators(){}
@@ -76,11 +77,10 @@ public abstract class KRecyclerViewAdapter
     /**
      * Notifies [KRecyclerViewAdapter] to update.
      *
-     * If your items may be massive, old and new items are sorted by the same constraint,
-     * and items never move (swap positions), you can set [movesDetected] false to disable
-     * move detection which takes O(N^2) time where N is the number of added, moved,
-     * removed items.
+     * If there is no moved or position-swapped item among massive items at the moment,
+     * you could set [movesDetected] false to accelerate the calculation.
      */
+    @MainThread
     public fun update(movesDetected: Boolean = true) {
         if (!isInitialized) {
             initialize()
@@ -114,10 +114,10 @@ public abstract class KRecyclerViewAdapter
         return creators.indexOfFirst {
             it.inflate == binder.inflate
         }
-            .updateIf({ i ->  i == -1 }) {
-                creators += HolderCreator(binder.inflate){}
-                return creators.lastIndex
-            }
+        .updateIf({ i ->  i == -1 }) {
+            creators += HolderCreator(binder.inflate){}
+            return creators.lastIndex
+        }
     }
 
     final override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingHolder<ViewBinding> {
