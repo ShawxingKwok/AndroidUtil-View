@@ -77,7 +77,7 @@ public abstract class KRecyclerViewAdapter
     /**
      * Notifies [KRecyclerViewAdapter] to update.
      *
-     * If there is no moved or position-swapped item among massive items at the moment,
+     * If there is no moved item among massive items at the moment,
      * you could set [movesDetected] false to accelerate the calculation.
      */
     @MainThread
