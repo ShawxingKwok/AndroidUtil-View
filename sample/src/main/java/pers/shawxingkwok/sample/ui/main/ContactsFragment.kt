@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.dylanc.viewbinding.nonreflection.binding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import pers.shawxingkwok.androidutil.view.collectOnResume
+import pers.shawxingkwok.androidutil.view.collectOnResumed
 import pers.shawxingkwok.sample.R
 import pers.shawxingkwok.sample.databinding.FragmentMainBinding
 
@@ -49,8 +49,15 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        contacts.collectOnResume{
+        contacts.collectOnResumed{
             contactsAdapter.contacts = it
+
+            /**
+             * Use `update()` insteadOf `notify...` after data changes.
+             *
+             * If there is no moved item among massive items at the moment,
+             * you could use `update(false)` to accelerate the calculation.
+             */
 
             /**
              * Use `update()` insteadOf `notify...` after data changes.
