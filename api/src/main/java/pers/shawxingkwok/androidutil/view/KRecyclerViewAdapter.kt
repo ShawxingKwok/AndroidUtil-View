@@ -72,16 +72,21 @@ public abstract class KRecyclerViewAdapter
      */
     protected abstract fun arrangeHolderBinders()
 
+    @Deprecated("`update` could be intercepted now. In that case, this function wouldn't be called.")
     protected open fun onUpdated(){}
 
     /**
      * Notifies [KRecyclerViewAdapter] to update.
      *
-     * If there is no moved item among massive items at the moment,
+     * @param movesDetected if there is no moved item among massive items at the moment,
      * you could set [movesDetected] false to accelerate the calculation.
+     *
+     * @param isIntercepted in some special cases, data source varies too frequently, which shows
+     * [DiffUtil.calculateDiff] being slow. Now set [isIntercepted] true to update [newBinders] but
+     * intercept the calculation before dispatch. Remember to use **adapter.notify...** after [update].
      */
     @MainThread
-    public fun update(movesDetected: Boolean = true) {
+    public fun update(movesDetected: Boolean = true, isIntercepted: Boolean = false) {
         if (!isInitialized) {
             initialize()
             return
@@ -90,21 +95,24 @@ public abstract class KRecyclerViewAdapter
         newBinders = mutableListOf()
         arrangeHolderBinders()
 
+        val oldSize = oldBinders.size
         val diffCallback = DiffCallback(oldBinders, newBinders)
         oldBinders = newBinders
 
         when {
             // fast simple remove all
-            newBinders.none() -> updateCallback.onRemoved(0, oldBinders.size)
+            newBinders.none() -> updateCallback.onRemoved(0, oldSize)
 
             // fast simple insert first
             oldBinders.none() -> updateCallback.onInserted(0, newBinders.size)
 
-            else -> {
+            !isIntercepted -> {
                 val result = DiffUtil.calculateDiff(diffCallback, movesDetected)
                 result.dispatchUpdatesTo(updateCallback)
+                return
             }
         }
+
         onUpdated()
     }
 
