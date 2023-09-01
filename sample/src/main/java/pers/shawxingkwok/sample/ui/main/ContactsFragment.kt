@@ -57,7 +57,7 @@ class ContactsFragment : Fragment(R.layout.fragment_main) {
              *
              * If items are massive or vary quite frequently like stopwatch, and
              * there is no moved item at the moment, you could use `update(false)`
-             * false to accelerate the calculation.
+             * to accelerate the calculation.
              */
             contactsAdapter.update()
         }
