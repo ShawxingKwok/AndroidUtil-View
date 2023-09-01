@@ -41,26 +41,26 @@ class ContactsAdapter : KRecyclerViewAdapter() {
                        // id is suggested null if [inflate] is unique.
             contentId = null // Notifies content to update.
                              // contentId is suggested null if the content is fixed.
-        ){
-            it.itemView.onClick {
+        ){ holder, _ ->
+            holder.itemView.onClick {
                 // ...
             }
         }
 
         // New friends
-        HolderBinder(ItemContactBinding::inflate, "New friends", null){
-            it.binding.imgAvatar.setImageResource(R.drawable.newfriend)
-            it.binding.tv.text = "New friends" // probably got from resources in real cases
-            it.itemView.onClick {
+        HolderBinder(ItemContactBinding::inflate, "New friends", null){ holder , _ ->
+            holder.binding.imgAvatar.setImageResource(R.drawable.newfriend)
+            holder.binding.tv.text = "New friends" // probably got from resources in real cases
+            holder.itemView.onClick {
                 // ...
             }
         }
 
         // Group chats
-        HolderBinder(ItemContactBinding::inflate, "Group chats", null){
-            it.binding.imgAvatar.setImageResource(R.drawable.groupchat)
-            it.binding.tv.text = "Group chats"
-            it.itemView.onClick {
+        HolderBinder(ItemContactBinding::inflate, "Group chats", null){ holder , _ ->
+            holder.binding.imgAvatar.setImageResource(R.drawable.groupchat)
+            holder.binding.tv.text = "Group chats"
+            holder.itemView.onClick {
                 // ...
             }
         }
@@ -73,28 +73,26 @@ class ContactsAdapter : KRecyclerViewAdapter() {
             // initial tag
             if (initialTag != nameInitial) {
                 initialTag = nameInitial
-                HolderBinder(ItemInitialBinding::inflate, initialTag, initialTag){
+                HolderBinder(ItemInitialBinding::inflate, initialTag, initialTag){ holder, _ ->
                     // don't call the mutable initialTag in this lambda
-                    it.binding.tv.text = nameInitial.toString()
+                    holder.binding.tv.text = nameInitial.toString()
                 }
             }
 
             // contact
-            HolderBinder(ItemContactBinding::inflate, contact.id, contact){
-                it.binding.imgAvatar.setImageResource(contact.avatar)
-                it.binding.tv.text = contact.name
-                it.itemView.onClick {
+            HolderBinder(ItemContactBinding::inflate, contact.id, contact){ holder, _ ->
+                holder.binding.imgAvatar.setImageResource(contact.avatar)
+                holder.binding.tv.text = contact.name
+                holder.itemView.onClick {
                     // ...
                 }
             }
         }
 
         // Contacts number
-        HolderBinder(ItemContactsNumberBinding::inflate, null, contacts.size){
+        HolderBinder(ItemContactsNumberBinding::inflate, null, contacts.size){ holder, _ ->
             // root is TextView in this case
-            it.binding.root.text = "${contacts.size} friends"
+            holder.binding.root.text = "${contacts.size} friends"
         }
     }
-
-    override fun onUpdated() {}
 }
