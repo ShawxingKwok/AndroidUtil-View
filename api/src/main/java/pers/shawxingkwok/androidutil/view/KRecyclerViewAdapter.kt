@@ -19,8 +19,8 @@ public abstract class KRecyclerViewAdapter
     : RecyclerView.Adapter<KRecyclerViewAdapter.ViewBindingHolder<ViewBinding>>()
 {
     private class DiffCallback(
-        private val oldBinders: List<HolderBinder<*>>,
-        private val newBinders: List<HolderBinder<*>>
+        private val oldBinders: List<HolderBinder<*, *>>,
+        private val newBinders: List<HolderBinder<*, *>>
     )
         : DiffUtil.Callback()
     {
@@ -43,13 +43,17 @@ public abstract class KRecyclerViewAdapter
             newItemPosition: Int,
         ): Boolean =
             oldBinders[oldItemPosition].contentId == newBinders[newItemPosition].contentId
+
+        override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+            return oldBinders[oldItemPosition].contentId
+        }
     }
 
     private val updateCallback = AdapterListUpdateCallback(this)
 
     private val creators = mutableListOf<HolderCreator<ViewBinding>>()
-    private lateinit var oldBinders: List<HolderBinder<ViewBinding>>
-    private var newBinders = mutableListOf<HolderBinder<ViewBinding>>()
+    private var oldBinders = listOf<HolderBinder<ViewBinding, Any?>>()
+    private var newBinders = mutableListOf<HolderBinder<ViewBinding, Any?>>()
 
     private var isInitialized = false
     private fun initialize(){
@@ -72,21 +76,15 @@ public abstract class KRecyclerViewAdapter
      */
     protected abstract fun arrangeHolderBinders()
 
-    @Deprecated("`update` could be intercepted now. In that case, this function wouldn't be called.")
-    protected open fun onUpdated(){}
-
     /**
      * Notifies [KRecyclerViewAdapter] to update.
      *
-     * @param movesDetected if there is no moved item among massive items at the moment,
-     * you could set [movesDetected] false to accelerate the calculation.
-     *
-     * @param isIntercepted in some special cases, data source varies too frequently, which shows
-     * [DiffUtil.calculateDiff] being slow. Now set [isIntercepted] true to update [newBinders] but
-     * intercept the calculation before dispatch. Remember to use **adapter.notify...** after [update].
+     * If items are massive or vary quite frequently like stopwatch, and
+     * there is no moved item at the moment, you could set [movesDetected]
+     * false to accelerate the calculation.
      */
     @MainThread
-    public fun update(movesDetected: Boolean = true, isIntercepted: Boolean = false) {
+    public open fun update(movesDetected: Boolean = true) {
         if (!isInitialized) {
             initialize()
             return
@@ -95,58 +93,52 @@ public abstract class KRecyclerViewAdapter
         newBinders = mutableListOf()
         arrangeHolderBinders()
 
-        val oldSize = oldBinders.size
-        val diffCallback = DiffCallback(oldBinders, newBinders)
-        oldBinders = newBinders
-
         when {
             // fast simple remove all
-            newBinders.none() -> updateCallback.onRemoved(0, oldSize)
+            newBinders.none() -> updateCallback.onRemoved(0, oldBinders.size)
 
             // fast simple insert first
             oldBinders.none() -> updateCallback.onInserted(0, newBinders.size)
 
-            !isIntercepted -> {
+            else -> {
+                val diffCallback = DiffCallback(oldBinders, newBinders)
                 val result = DiffUtil.calculateDiff(diffCallback, movesDetected)
                 result.dispatchUpdatesTo(updateCallback)
-                return
             }
         }
 
-        onUpdated()
+        oldBinders = newBinders
     }
 
     final override fun getItemViewType(position: Int): Int {
-        val binder = oldBinders[position]
+        val binder = newBinders[position]
 
         return creators.indexOfFirst {
             it.inflate == binder.inflate
         }
-        .updateIf({ i ->  i == -1 }) {
-            creators += HolderCreator(binder.inflate){}
-            return creators.lastIndex
-        }
+            .updateIf({ i ->  i == -1 }) {
+                creators += HolderCreator(binder.inflate){}
+                return creators.lastIndex
+            }
     }
 
     final override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingHolder<ViewBinding> {
         return creators[viewType].create(parent)
     }
 
-    final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
-        oldBinders[position].onBind(holder)
-    }
+    final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {}
 
     final override fun onBindViewHolder(
         holder: ViewBindingHolder<ViewBinding>,
         position: Int,
         payloads: MutableList<Any>,
     ) {
-        super.onBindViewHolder(holder, position, payloads)
+        newBinders[position].onBind(holder, payloads.firstOrNull())
     }
 
     final override fun getItemCount(): Int {
         if (!isInitialized) initialize()
-        return oldBinders.size
+        return newBinders.size
     }
 
     public open class ViewBindingHolder<out VB : ViewBinding>(public val binding: VB) : ViewHolder(binding.root)
@@ -187,13 +179,15 @@ public abstract class KRecyclerViewAdapter
      * @param id distinguishes among HolderBinders sharing same [inflate].
      * This is suggested null if [inflate] is unique.
      * @param contentId notifies content to update. This is suggested null if the content is fixed.
-     * @param onBind does work those in [onBindViewHolder] before.
+     * @param onBind bind source data to item view with `holder` and nullable `oldContentId`.
+     * If you require higher performance, you could compare nullable `oldContentId` with the current to change
+     * different parts.
      */
-    protected open inner class HolderBinder<out VB : ViewBinding>(
+    protected open inner class HolderBinder<out VB : ViewBinding, out T>(
         internal val inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB,
         internal val id: Any?,
-        internal val contentId: Any?,
-        internal val onBind: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
+        internal val contentId: T,
+        internal val onBind: (holder: ViewBindingHolder<@UnsafeVariance VB>, @UnsafeVariance T?) -> Unit
     ){
         init {
             newBinders.add(this)
