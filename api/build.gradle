@@ -62,7 +62,7 @@ tasks.withType(KotlinCompile).configureEach{
 // publish
 mavenPublishing {
     def artifactId = "android-util-view"
-    def version = "1.0.7"
+    def version = "1.0.8"
     def isSnapshot = false
 
     if (isSnapshot) version += "-SNAPSHOT"
