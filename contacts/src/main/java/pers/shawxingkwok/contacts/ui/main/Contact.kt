@@ -1,4 +1,4 @@
-package pers.shawxingkwok.sample.ui.main
+package pers.shawxingkwok.contacts.ui.main
 
 import androidx.annotation.DrawableRes
 

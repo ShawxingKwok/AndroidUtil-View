@@ -1,4 +1,4 @@
-package pers.shawxingkwok.sample.ui.main
+package pers.shawxingkwok.contacts.ui.main
 
 import android.os.Bundle
 import android.view.View
@@ -8,8 +8,8 @@ import com.dylanc.viewbinding.nonreflection.binding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import pers.shawxingkwok.androidutil.view.collectOnResumed
-import pers.shawxingkwok.sample.R
-import pers.shawxingkwok.sample.databinding.FragmentMainBinding
+import pers.shawxingkwok.contacts.R
+import pers.shawxingkwok.contacts.databinding.FragmentMainBinding
 
 class ContactsFragment : Fragment(R.layout.fragment_main) {
     private val binding by binding(FragmentMainBinding::bind)

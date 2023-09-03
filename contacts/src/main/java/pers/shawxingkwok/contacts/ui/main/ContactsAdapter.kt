@@ -1,13 +1,13 @@
-package pers.shawxingkwok.sample.ui.main
+package pers.shawxingkwok.contacts.ui.main
 
 import android.annotation.SuppressLint
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
 import pers.shawxingkwok.androidutil.view.onClick
-import pers.shawxingkwok.sample.R
-import pers.shawxingkwok.sample.databinding.ItemContactBinding
-import pers.shawxingkwok.sample.databinding.ItemContactsNumberBinding
-import pers.shawxingkwok.sample.databinding.ItemInitialBinding
-import pers.shawxingkwok.sample.databinding.ItemSearchBinding
+import pers.shawxingkwok.contacts.R
+import pers.shawxingkwok.contacts.databinding.ItemContactBinding
+import pers.shawxingkwok.contacts.databinding.ItemContactsNumberBinding
+import pers.shawxingkwok.contacts.databinding.ItemInitialBinding
+import pers.shawxingkwok.contacts.databinding.ItemSearchBinding
 
 class ContactsAdapter : KRecyclerViewAdapter() {
     // source data

@@ -17,4 +17,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AndroidUtil-View"
 include ':api'
-include ':sample'
+include ':contacts'
+include ':stopwatch'

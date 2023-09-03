@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="pers.shawxingkwok.sample.ui.main.ContactsFragment">
+    tools:context="pers.shawxingkwok.contacts.ui.main.ContactsFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"

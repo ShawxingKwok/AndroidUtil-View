@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'pers.shawxingkwok.sample'
+    namespace 'pers.shawxingkwok.contacts'
     compileSdk 33
 
     defaultConfig {
-        applicationId "pers.shawxingkwok.sample"
+        applicationId "pers.shawxingkwok.contacts"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -60,6 +60,6 @@ tasks.withType(KotlinCompile).configureEach{
 
 dependencies {
     implementation("io.github.shawxingkwok:kt-util:1.0.2")
-    implementation project(":api") // 'io.github.shawxingkwok:android-util-view:1.0.2'
+    implementation project(":api") // 'io.github.shawxingkwok:android-util-view:[latest]'
 }
 //endregion

@@ -5,11 +5,11 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="pers.shawxingkwok.sample.MainActivity">
+        tools:context="pers.shawxingkwok.contacts.MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_main"
-        android:name="pers.shawxingkwok.sample.ui.main.ContactsFragment"
+        android:name="pers.shawxingkwok.contacts.ui.main.ContactsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 

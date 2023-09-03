@@ -1,8 +1,4 @@
-package pers.shawxingkwok.sample
-
-import org.junit.Test
-
-import org.junit.Assert.*
+package pers.shawxingkwok.contacts
 
 /**
  * Example local unit test, which will execute on the development machine (host).

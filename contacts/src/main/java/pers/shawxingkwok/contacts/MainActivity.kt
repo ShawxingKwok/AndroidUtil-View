@@ -1,8 +1,8 @@
-package pers.shawxingkwok.sample
+package pers.shawxingkwok.contacts
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import pers.shawxingkwok.sample.databinding.ActivityMainBinding
+import pers.shawxingkwok.contacts.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
